@@ -1,0 +1,185 @@
+**欢迎指正内容不严谨或有误的地方！**
+
+> 使用Laravel的过程中经常会遇到一些名词（服务提供者、依赖注入、IOC容器之类的概念），每次都是匆匆扫俩眼手册，没有机会深究。
+> 今天就花些时间做个小小的归纳，若有不足，后续补充。
+
+#### Reference
+
+1. [Laravel 的生命周期](https://blog.csdn.net/qq_25615395/article/details/89509775)
+2. [php/laravel底层核心代码分析之依赖注入](https://www.bilibili.com/video/BV1C5411W7sG)
+
+#### 前言
+
+##### 1.Laravel的特点和优势
+
+1. 集成了 `composer`；
+2. 实现了依赖注入，更好的管理类与类之间的关系，使得框架具有更好的扩展性；
+3. 实现了一些高级特性 `console/event/queue/middleware/facades...`；
+
+**Laravel的缺点：加载文件太多导致速度变慢；**
+*优化方式：*
+1. 缓存配置方式 `php artisan config:cache`；
+2. 去掉一些不必要的加载文件(主要是*serviceProvider*)；
+3. 开启 opcache (省略编译过程)；
+
+##### 2.Laravel的启动流程(生命周期)
+
+1. 包含自动加载文件(composer)；
+2. 生成服务容器：①注册基础的 *bindings* (构建)；②注册基础的 *serviceProvider*(通过bind)、event服务、路由服务、日志服务；
+3. 获取 *request* 对象；
+4. 逻辑处理：①加载/解析基本的启动项(包括基础服务和serviceProvider)，如路由、异常处理、facades、serviceProvider；②通过管道模式，使用中间件过滤用户请求数据，处理业务逻辑；
+5. 返回 *response* 对象；
+
+#### Laravel依赖注入/控制反转
+
+1. **依赖注入：** 将组件间的依赖关系从程序内部提到外部进行管理；
+2. **控制反转：** 组件间的依赖通过外部以参数或其他形式的注入；
+
+##### 1. 代码示例
+
+**正转代码示例：**
+```php
+class A
+{
+    // 当B中依赖其他类时，就会导致层级依赖出现，维护成本高
+    public function __construct() {
+        $this->b = new B();
+    }
+    public function aMethod(){
+        return $this->b->bMethod();
+    }
+}
+
+class B 
+{
+    public function __construct() {}
+    public function bMethod(){
+        return "Hello World!";
+    }
+}
+$b = (new A)->aMethod();
+```
+
+**控制反转代码示例：**
+```php
+class A
+{
+    protected $b;
+    public function __construct(B $b) {
+        $this->b = $b;
+    }
+    public function getB(){
+        return $this->b->bMethod();
+    }
+}
+
+class B 
+{
+    public function __construct() {}
+    public function bMethod(){
+        return "Hello World!";
+    }
+}
+
+// IOC容器类
+class Ioc
+{
+    protected $instances = [];
+    public function __construct() {
+        $this->instances['B'] = new B();
+        $this->instances['C'] = new C();
+        $this->instances['D'] = new D();
+    }
+    
+    public function make($abstract){
+        return $this->instances[$abstract];
+    }
+}
+
+// 控制反转：类与类的依赖关系不再在类A中创建，而是通过IOC容器生成类B后通过参数的形式传入类A中；
+$ioc = new Ioc();
+$b   = $ioc->make('B');
+$a   = new A($b);
+$a->getB();
+```
+
+控制反转即将创建对象的控制权进行了转移，以前创建对象(B)的主动权和创建时机都由自己(A)把控，而控制反转就是将这样的权利转移给第三方(IOC容器)；而IOC容器就是一个专门用来创建对象的工厂，IOC的存在导致依赖关系的变化，以前是A依赖于B，反转后是依赖于IOC容器，通过IOC容器建立和B的关系。所以对于A来说发生了控制反转，而对于IOC容器来说，组件间的依赖关系都是通过IOC容器生产后注入到所需要的类中，这就叫做依赖注入。
+
+**上述IOC容器的缺点：**
+1. 无法提前生成所有的实例化对象；
+2. 没有解决多层依赖的问题，仅仅是将依赖关系提到外部管理。
+
+**优化后的控制反转：**
+
+```php
+class A
+{
+    protected $b;
+    public function __construct(B $b) {
+        $this->b = $b;
+    }
+    public function getB(){
+        return $this->b->bMethod();
+    }
+}
+class B 
+{
+    public function __construct(C $c, D $d) {}
+    public function bMethod(){
+        return "Hello World!";
+    }
+}
+class C
+{
+    public function __construct() {}
+    public function cMethod(){}
+}
+class D 
+{
+    public function __construct() {}
+    public function dMethod(){}
+}
+
+class Ioc
+{
+    protected $instances = [];
+    public function __construct() {}
+    public function getInstance($abstract) {
+        // 获取类的反射信息，也就是类的所有信息
+        $reflector = new ReflectionClass($abstract);
+        // 获取反射类的构造函数信息
+        $constructor = $reflector->getConstructor();
+        // 获取反射类构造函数的参数，此处获取到的参数应该是B
+        $dependencies = $constructor->getParameters();
+        // 判断反射类是否有依赖其他类，不依赖(无参)则直接返回该类
+        if (!$dependencies) return new $abstract();
+        // 遍历反射类的参数
+        foreach ($dependencies as $dependency) {
+            // 若存在依赖类，则递归依赖类
+            if (!is_null($dependency->getClass())) {
+                $p[] = $this->make($dependency->getClass()->name);
+                // 递归是从最底层向上层执行，所以示例此处$p[0]是C的实例化对象，$p[1]是D的实例化对象
+            }
+        }
+        // 创建一个类的新的实例，将给出的参数(依赖类数组)传递到类的构造函数
+        return $reflector->newInstanceArgs($p);
+    }
+    public function make($abstract){
+        return $this->getInstance($abstract);
+    }
+}
+
+$ioc = new Ioc();
+$a   = $ioc->make('A');
+$a->getB();
+```
+
+##### 2.依赖注入的优点
+1. 依赖注入的优点就是更好的管理类与类之间的依赖关系，降低了编码的复杂性；
+2. MVC的所有逻辑代码都写在 *controller* 层，无法很好的做到代码复用，扩展性不强（即分层不够，模块细分还可以继续下去，常见的就是创建一个 *service* 层用来处理可复用的代码，最好是 *controller* 只需关注 *request对象*）；
+3. Laravel中通过 *namespace* 和 *use* 实现了自动加载机制，能够找到对应的类的文件，然后通过反射获取类的实例化对象。
+
+*PHP程序运行的本质：包含文件和获取实例化对象*
+1. 传统框架：通过 `spl_autoload_register()/__autoload()` 方法去指定目录来寻找文件，然后 `include()/require()` 实现管理类与类之间的依赖；
+2. Laravel：通过 `namespace` 和 `use` ，实现自动加载，再加上反射实现了依赖注入来管理类和类之间的依赖关系。
+
