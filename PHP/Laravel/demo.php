@@ -54,6 +54,11 @@ class StripeBiller implements BillerInterface
     {
         $this->notifier->notify($user, $amount);
     }
+
+//    public function billUser($user)
+//    {
+//        $this->biller->bill($user->getId(), $this->>amount)
+//    }
 }
 
 // 实现一个 notifier
@@ -101,4 +106,26 @@ var_dump($reflection->getConstants());
 // 告诉容器 从事使用 StripeBiller 作为 BillerInterface 的实现类
 App::bind('BillerInterface', 'StripeBiller');
 App::singleton('BillerInterface', 'StripeBiller');  // 单例模式
+
+interface ProviderInterface {
+    public function getLowestPrice($location);
+    public function book($location);
+}
+
+class User {
+    public function bookLocation(ProviderInterface $provider, $location)
+    {
+        $amountCharged = $provider->book($location);
+        $this->logBookedLocation($location, $amountCharged);
+    }
+}
+
+$location = 'Hilton, Dallas';
+$cheapestProvider = $this->findCheapest($location, array(
+    new PricelineProvider(),
+    new OrbitzProvider(),
+));
+$user->bookLocation($cheapestProvider, $location);
+
+
 
