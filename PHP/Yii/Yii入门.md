@@ -566,6 +566,180 @@ class TestController extends BaseController
 }
 ```
 
+#### 2.6 模型
+
+模型是 [MVC](http://en.wikipedia.org/wiki/Model–view–controller) 模式中的一部分， 是代表业务数据、规则和逻辑的对象。
+
+可通过继承 [yii\base\Model](https://www.yiichina.com/doc/api/2.0/yii-base-model) 或它的子类定义模型类， 基类[yii\base\Model](https://www.yiichina.com/doc/api/2.0/yii-base-model)支持许多实用的特性：
+
+- [属性](https://www.yiichina.com/doc/guide/2.0/structure-models#attributes): 代表可像普通类属性或数组 一样被访问的业务数据;
+- [属性标签](https://www.yiichina.com/doc/guide/2.0/structure-models#attribute-labels): 指定属性显示出来的标签;
+- [块赋值](https://www.yiichina.com/doc/guide/2.0/structure-models#massive-assignment): 支持一步给许多属性赋值;
+- [验证规则](https://www.yiichina.com/doc/guide/2.0/structure-models#validation-rules): 确保输入数据符合所申明的验证规则;
+- [数据导出](https://www.yiichina.com/doc/guide/2.0/structure-models#data-exporting): 允许模型数据导出为自定义格式的数组。
+
+**属性**
+
+模型通过 *属性* 来代表业务数据，每个属性像是模型的公有可访问属性， [yii\base\Model::attributes()](https://www.yiichina.com/doc/api/2.0/yii-base-model#attributes()-detail) 指定模型所拥有的属性。
+
+可像访问一个对象属性一样访问模型的属性:
+
+```php
+public function actionDetail(Request $request)
+{
+    $params   = $this->inputs();
+    $id       = $this->inputs('id');
+
+    # 属性标签
+    dump((new Articles())->getAttributeLabel('created_at'));
+    dump((new Articles())->getAttributeLabel('title'));
+    # 获取模型所拥有的属性
+    dump((new Articles())->attributes());
+
+    dd('success');
+
+}
+```
+
+#### 2.7 Console
+
+
+
+Yii 命令行语法：`yii <route> [--option1=value1 --option2=value2 ... argument1 argument2 ...]`
+
+
+
+```bash
+PS D:\YiiLearning> ./yii
+
+This is Yii version 2.0.45.
+
+The following commands are available:
+
+- asset                        Allows you to combine and compress your JavaScript and CSS files.
+    asset/compress (default)   Combines and compresses the asset files according to the given configuration.
+    asset/template             Creates template of configuration file for [[actionCompress]].
+
+- cache                        Allows you to flush cache.
+    cache/flush                Flushes given cache components.
+    cache/flush-all            Flushes all caches registered in the system.
+    cache/flush-schema         Clears DB schema cache for a given connection component.
+    cache/index (default)      Lists the caches that can be flushed.
+
+- fixture                      Manages fixture data loading and unloading.
+    fixture/load (default)     Loads the specified fixture data.
+    fixture/unload             Unloads the specified fixtures.
+
+- gii                          This is the command line version of Gii - a code generator.
+    gii/controller             Controller Generator
+    gii/crud                   CRUD Generator
+    gii/extension              Extension Generator
+    gii/form                   Form Generator
+    gii/index (default)
+    gii/model                  Model Generator
+    gii/module                 Module Generator
+
+- hello                        This command echoes the first argument that you have entered.
+    hello/index (default)      This command echoes what you have entered as the message.
+
+- help                         Provides help information about console commands.
+    help/index (default)       Displays available commands or the detailed information
+    help/list                  List all available controllers and actions in machine readable format.
+    help/list-action-options   List all available options for the $action in machine readable format.
+    help/usage                 Displays usage information for $action.
+
+- message                      Extracts messages to be translated from source files.
+    message/config             Creates a configuration file for the "extract" command using command line options specified.
+    message/config-template    Creates a configuration file template for the "extract" command.
+    message/extract (default)  Extracts messages to be translated from source code.
+
+- migrate                      Manages application migrations.
+    migrate/create             Creates a new migration.
+    migrate/down               Downgrades the application by reverting old migrations.
+    migrate/fresh              Drops all tables and related constraints. Starts the migration from the beginning.
+    migrate/history            Displays the migration history.
+    migrate/mark               Modifies the migration history to the specified version.
+    migrate/new                Displays the un-applied new migrations.
+    migrate/redo               Redoes the last few migrations.
+    migrate/to                 Upgrades or downgrades till the specified version.
+    migrate/up (default)       Upgrades the application by applying new migrations.
+
+- serve                        Runs PHP built-in web server.
+    serve/index (default)      Runs PHP built-in web server.
+
+
+To see the help of each command, enter:
+
+  yii help <command-name>
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
