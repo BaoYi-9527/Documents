@@ -124,6 +124,14 @@ docker start [容器ID(CONTAINER ID)]
 
 #### Docker Compose
 
+> Compose 的定位是 [定义和运行多个 Docker 容器的应用]。
+> Compose 运行通过一个单独的 `docker-compose.yml` 模板文件来定义一组相关联的应用容器为一个项目。
+
+*Compose 中的俩个重要概念:*
++ 服务(service)：一个应用的容器，实际上可以包括若干运行相同镜像的容器实例。
++ 项目(project)：由一组关联的应用容器组成的一个完整业务单元，在 `docker-compose.yml` 文件中定义。
++ Compose 的默认管理对象是项目，通过子命令对项目中的一组容器进行便捷地生命周期管理。
+
 **Linux安装docker-compose**
 
 ```bash
@@ -138,16 +146,27 @@ sudo chmod +x /usr/local/bin/docker-compose
 # bash 补全命令
 curl -L https://raw.githubusercontent.com/docker/compose/1.27.4/contrib/completion/bash/docker-compose > /etc/bash_completion.d/docker-compose
 
-# 卸载
+# 卸载[二进制包]
 sudo rm /usr/local/bin/docker-compose
 ```
+
+[docker-compose命令说明](https://yeasy.gitbook.io/docker_practice/compose/commands)
+
+
+
+#### Compose 模板文件
+
+
+
+
+
+
 
 #### docker/lnmp
 
 ```bash
 # git 安装
 git clone --depth=1 https://gitee.com/khs1994-docker/lnmp.git
-
 ```
 
 
