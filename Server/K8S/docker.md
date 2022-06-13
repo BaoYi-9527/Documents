@@ -15,7 +15,7 @@
 
 + **镜像-Images** ：将应用程序所需的环境打包问镜像文件，用于构建容器。
 + **容器-Containers**：容器可以看作是镜像的一个实例，应用程序运行其中。
-+ **数据卷-Data Volumes**：
++ **数据卷-Data Volumes**：数据卷是一个可供一个或多个容器使用的特殊目录。
 + **网络-Networks**：镜像的网络
 + **镜像仓库-dockerhub**：提供上传、下载、保存镜像功能的仓库。
 + **Dockerfile**：可以理解为镜像构建脚本，其中记录了构建一个镜像的一系列操作。
@@ -135,7 +135,9 @@ docker start [容器ID(CONTAINER ID)]
 **Linux安装docker-compose**
 
 ```bash
-sudo curl -L https://github.com/docker/compose/releases/download/1.27.4/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+# 这里要注意的是官网文档上的可能版本比较低
+sudo curl -L https://github.com/docker/compose/releases/download/v2.6.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+sudo curl -L https://github.com/docker/compose/releases/download/v2.6.0/docker-compose-linux-x86_64
 
 # 国内用户可以使用以下方式加快下载
 sudo curl -L https://download.fastgit.org/docker/compose/releases/download/1.27.4/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
@@ -167,6 +169,41 @@ sudo rm /usr/local/bin/docker-compose
 ```bash
 # git 安装
 git clone --depth=1 https://gitee.com/khs1994-docker/lnmp.git
+
+
+
+sudo ln -s $LNMP_PATH/cli/completion/bash/lnmp-docker /etc/bash_completion.d/lnmp-docker
+
+
+sudo ln -s $LNMP_PATH/lnmp-docker /etc/bash_completion.d/lnmp-docker
+
+
+sudo ln -s /data/web/lnmp/lnmp-docker /usr/bin/lnmp-docker
+
+export LNMP_PATH=/data/web/lnmp
+export PATH=$LNMP_PATH:$LNMP_PATH/bin:$PATH
+
+
+
+server {
+        listen        80;
+        server_name  www.lifewonder.com;
+        root   "/app//data/web/lnmp/app/lifewonder/public";
+        location / {
+            try_files $uri $uri/ /index.php?$query_string;
+            index index.php index.html error/index.html;
+            include /app//data/web/lnmp/app/lifewonder/public/nginx.htaccess;
+            autoindex  off;
+        }
+        location ~ \.php(.*)$ {
+            fastcgi_pass   php7:9000;
+            fastcgi_index  index.php;
+            fastcgi_split_path_info  ^((?U).+\.php)(/?.+)$;
+            include        fastcgi_params;
+        }
+}
+
+
 ```
 
 
