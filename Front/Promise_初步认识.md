@@ -123,3 +123,6 @@ new Promise(function (resolve) {
 
 #### resolve()
 
+#### reject()
+
+#### try()
