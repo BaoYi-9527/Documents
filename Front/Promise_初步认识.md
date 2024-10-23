@@ -58,3 +58,68 @@ console.log('Hi!')
 // Hi!
 // promise success
 ```
+
+```javascript
+const p1 = new Promise(function (resolve) {
+    // p1 的状态指定了再 3 s 之后由 pending 变为 resolved
+    setTimeout(function () {
+        resolve('success')
+    }, 3000)
+})
+
+const p2 = new Promise(function (resolve) {
+    // p2 的状态指定了在 1 s 之后 resolve，且 resolve 返回的是 Promise p1
+    // 此时返回的 p1 状态尚未结束，为 pending 状态，等待执行中
+    // p1 resolve 之后，返回的是 success
+    setTimeout(function () {
+        resolve(p1)
+    }, 1000)
+})
+
+p2.then( result => console.log(result)).catch(error => console.log(error))
+
+// success
+```
+
++ 调用 `resolve` 或 `reject` 并不会终结 Promise 的参数函数的执行。
++ 一般来说, 调用 `resolve` 或 `reject` 以后，Promise 的使命就结束了，后续操作应该放在 `then` 方法中，而不是 `resolve` 或 `reject` 方法中。
++ 最好在 `resolve` 或 `reject` 方法前面加上 `return` 语句，这样可以保证后续代码不会被执行。
+
+```javascript
+new Promise(function (resolve) {
+    resolve(1)
+    console.log(2)
+}).then(function (value) {
+    console.log(value)
+})
+// 2
+// 1
+
+new Promise(function (resolve) {
+    return resolve(1)
+    // 后续语句不会执行
+    console.log(2)
+}).then(function (value) {
+    console.log(value)
+})
+// 1
+```
+
+### API
+
+#### then()
+
+#### catch()
+
+#### finally()
+
+#### all()
+
+#### race()
+
+#### allSettled()
+
+#### any()
+
+#### resolve()
+
